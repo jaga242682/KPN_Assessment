@@ -1,0 +1,17 @@
+<template>
+    <lightning-card title="Available Products" icon-name="standard:product">
+        <template if:true={products}>
+            <lightning-datatable
+                key-field="Id"
+                data={products}
+                columns={columns}
+                hide-checkbox-column="true"
+                show-row-number-column="true"
+                onrowaction={handleRowAction}>
+            </lightning-datatable>
+        </template>
+        <template if:true={error}>
+            <div class="slds-text-color_error">{error}</div>
+        </template>
+    </lightning-card>
+</template>

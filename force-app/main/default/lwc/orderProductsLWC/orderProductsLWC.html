@@ -1,0 +1,26 @@
+<template>
+    <lightning-card title="Order Products" icon-name="standard:product">
+        <div slot="actions">
+            <lightning-button
+                variant="brand"
+                label="Activate Order"
+                title="Activate Order"
+                icon-name="utility:approval"
+                onclick={handleActivateOrder}
+                disabled={isOrderActivated}>
+            </lightning-button>
+        </div>
+        <template if:true={products}>
+            <lightning-datatable
+                key-field="Id"
+                data={products}
+                columns={columns}
+                hide-checkbox-column="true"
+                show-row-number-column="true">
+            </lightning-datatable>
+        </template>
+        <template if:true={error}>
+            <div class="slds-text-color_error">{error}</div>
+        </template>
+    </lightning-card>
+</template>

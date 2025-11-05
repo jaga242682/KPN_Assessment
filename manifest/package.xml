@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>GetOrderProductController</members>
+        <members>GetOrderProductController_Test</members>
+        <members>GetProductController</members>
+        <members>GetProductController_Test</members>
+        <members>QueryUtility</members>
+        <members>QueryUtility_Test</members>
+        <members>TestDataFactory</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>getProductsLWC</members>
+        <members>orderProductsLWC</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Order_Record_Page</members>
+        <name>FlexiPage</name>
+    </types>
+    <version>65.0</version>
+</Package>

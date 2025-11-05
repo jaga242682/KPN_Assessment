@@ -1,0 +1,73 @@
+# -------------------------------
+# Salesforce SFDX Project Git Ignore
+# -------------------------------
+
+# Salesforce CLI cache and local auth files
+.sfdx/
+.sf/
+*.json
+
+# Local environment & auth info
+.env
+.env.local
+.env.production
+.env.development
+auth.json
+
+# VS Code settings & workspace configs
+.vscode/
+.idea/
+.settings/
+*.code-workspace
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Temporary or build files
+coverage/
+dist/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Test results
+test-output/
+junit/
+output/
+
+# Deployment-specific files
+.deploy/
+local-dev-config.json
+scratch-org-def.json
+
+# Backup or archive files
+*.zip
+*.tar
+*.gz
+*.rar
+
+# Salesforce metadata not needed in source
+**/.dup_metadata_cache/
+**/wave/.*
+**/lwc/jsconfig.json
+
+# MacOS specific
+.AppleDouble
+.LSOverride
+
+# Windows specific
+ehthumbs.db
