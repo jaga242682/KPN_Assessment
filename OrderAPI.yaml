@@ -1,0 +1,195 @@
+openapi: 3.0.3
+info:
+  title: Salesforce Bulk Order + Order Items API
+  description: API to create multiple Orders with their OrderItems in Salesforce in one call.
+  version: 2.0.0
+
+servers:
+  - url: https://your-domain.my.salesforce.com/services/apexrest/createorders
+    description: Create Order REST API salesforce
+
+paths:
+  /orders:
+    post:
+      summary: Create multiple Orders with OrderItems
+      description: Accepts an array of Orders, each containing its own list of OrderItems.
+      operationId: createBulkOrdersWithItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderRequest'
+            example:
+              - AccountId: "001XXXXXXXXXXXX"
+                Pricebook2Id: "01sXXXXXXXXXXXX"
+                EffectiveDate: "2025-11-05"
+                EndDate: "2026-11-05"
+                Status: "Draft"
+                Description: "Order 1 from API"
+                BillingStreet: "123 Keizersgracht"
+                BillingCity: "Amsterdam"
+                BillingPostalCode: "1016DS"
+                BillingCountry: "Netherlands"
+                ShippingStreet: "45 Overtoom"
+                ShippingCity: "Amsterdam"
+                ShippingPostalCode: "1054AP"
+                ShippingCountry: "Netherlands"
+                OrderItems:
+                  - PricebookEntryId: "01uXXXXXXXXXXXX"
+                    Quantity: 2
+                    UnitPrice: 150.00
+                  - PricebookEntryId: "01uYYYYYYYYYYYY"
+                    Quantity: 1
+                    UnitPrice: 300.00
+              - AccountId: "001YYYYYYYYYYYY"
+                Pricebook2Id: "01sYYYYYYYYYYYY"
+                EffectiveDate: "2025-11-06"
+                Status: "Draft"
+                Description: "Order 2 with one item"
+                BillingStreet: "678 Damrak"
+                BillingCity: "Amsterdam"
+                BillingPostalCode: "1012LM"
+                BillingCountry: "Netherlands"
+                ShippingStreet: "678 Damrak"
+                ShippingCity: "Amsterdam"
+                ShippingPostalCode: "1012LM"
+                ShippingCountry: "Netherlands"
+                OrderItems:
+                  - PricebookEntryId: "01uZZZZZZZZZZZZ"
+                    Quantity: 5
+                    UnitPrice: 75.00
+      responses:
+        "201":
+          description: Orders created successfully, grouped by AccountId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  createdCount:
+                    type: integer
+                    example: 3
+                  failedCount:
+                    type: integer
+                    example: 0
+                  accounts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        accountId:
+                          type: string
+                          example: "001XXXXXXXXXXXX"
+                        orders:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              orderId:
+                                type: string
+                                example: "801XXXXXXXXXXXX"
+                              status:
+                                type: string
+                                example: "Draft"
+                              description:
+                                type: string
+                                example: "First Order"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+        "400":
+          description: Bad request (missing required fields)
+        "500":
+          description: Internal server error
+
+components:
+  schemas:
+    OrderRequest:
+      type: object
+      required:
+        - AccountId
+        - EffectiveDate
+        - Status
+      properties:
+        AccountId:
+          type: string
+        Pricebook2Id:
+          type: string
+        EffectiveDate:
+          type: string
+          format: date
+        EndDate:
+          type: string
+          format: date
+        Status:
+          type: string
+        Description:
+          type: string
+        PoNumber:
+          type: string
+        BillingStreet:
+          type: string
+        BillingCity:
+          type: string
+        BillingPostalCode:
+          type: string
+        BillingCountry:
+          type: string
+        ShippingStreet:
+          type: string
+        ShippingCity:
+          type: string
+        ShippingPostalCode:
+          type: string
+        ShippingCountry:
+          type: string  
+        OrderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemRequest'
+
+    OrderItemRequest:
+      type: object
+      required:
+        - PricebookEntryId
+        - Quantity
+        - UnitPrice
+      properties:
+        PricebookEntryId:
+          type: string
+        Quantity:
+          type: number
+        UnitPrice:
+          type: number
+
+    BulkOrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        createdCount:
+          type: integer
+        failedCount:
+          type: integer
+        orderIds:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+      example:
+        success: true
+        createdCount: 2
+        failedCount: 0
+        orderIds: ["801XXXXXXXXXXXX", "801YYYYYYYYYYYY"]
+        errors: []

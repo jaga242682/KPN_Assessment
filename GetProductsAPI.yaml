@@ -1,0 +1,242 @@
+openapi: 3.0.1
+info:
+  title: KPN Telecom Pricebook & Product API
+  description: >
+    Salesforce Custom REST API to retrieve multiple Pricebooks and bulk
+    PricebookEntries (Products)  with details like Product Family, Bundle Type,
+    and pricing.  Designed for telecom product catalogs like KPN.
+  version: 1.2.0
+  contact:
+    name: KPN Salesforce Integration Team
+    email: salesforce-api@kpn.com
+servers:
+  - url: >-
+      https://yourInstance.my.salesforce.com/services/apexrest/products
+    description: Salesforce REST API
+paths:
+  /products:
+    get:
+      summary: Retrieve bulk Pricebooks with multiple PricebookEntries
+      description: >
+        Returns multiple Pricebooks and their associated PricebookEntries with
+        telecom-specific product data. Supports filtering by Product Family,
+        Bundle Type, and Pricebook Name.
+      parameters:
+        - name: productFamily
+          in: query
+          description: 'Filter by Product Family (e.g. Mobile, Internet, TV)'
+          required: false
+          schema:
+            type: string
+            example: Mobile
+        - name: bundleType
+          in: query
+          description: 'Filter by Bundle Type (e.g. Postpaid Bundle, Family Plan)'
+          required: false
+          schema:
+            type: string
+            example: Postpaid Bundle
+        - name: pricebookName
+          in: query
+          description: 'Filter by Pricebook Name (e.g. KPN Retail, KPN B2B)'
+          required: false
+          schema:
+            type: string
+            example: KPN Retail
+        - name: limit
+          in: query
+          description: Maximum number of Pricebook records to return
+          required: false
+          schema:
+            type: integer
+            default: 50
+            example: 100
+      responses:
+        '200':
+          description: Successfully retrieved multiple Pricebooks and PricebookEntries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  totalPricebooks:
+                    type: integer
+                    example: 2
+                  totalEntries:
+                    type: integer
+                    example: 6
+                  pricebooks:
+                    type: array
+                    description: List of Pricebooks and their entries
+                    items:
+                      type: object
+                      properties:
+                        pricebookId:
+                          type: string
+                          example: 01sXXXXXXKPNR123
+                        pricebookName:
+                          type: string
+                          example: KPN Retail Pricebook
+                        isActive:
+                          type: boolean
+                          example: true
+                        currencyIsoCode:
+                          type: string
+                          example: EUR
+                        lastModifiedDate:
+                          type: string
+                          format: date-time
+                          example: '2025-10-30T10:15:00Z'
+                        pricebookEntries:
+                          type: array
+                          description: Multiple PricebookEntries for telecom products
+                          items:
+                            type: object
+                            properties:
+                              pricebookEntryId:
+                                type: string
+                                example: 01uXXXXXXMBL100
+                              productId:
+                                type: string
+                                example: 01tXXXXXXPDT100
+                              productName:
+                                type: string
+                                example: KPN Mobile Postpaid 50GB
+                              productCode:
+                                type: string
+                                example: KPN-MBL-50GB
+                              productFamily:
+                                type: string
+                                example: Mobile
+                              bundleType:
+                                type: string
+                                example: Postpaid Bundle
+                              technology:
+                                type: string
+                                example: 5G
+                              speed:
+                                type: string
+                                example: Unlimited
+                              unitPrice:
+                                type: number
+                                example: 35.99
+                              isActive:
+                                type: boolean
+                                example: true
+                              startDate:
+                                type: string
+                                format: date
+                                example: '2025-01-01'
+                              endDate:
+                                type: string
+                                format: date
+                                example: '2025-12-31'
+                              description:
+                                type: string
+                                example: >-
+                                  Unlimited 5G data plan with EU roaming
+                                  included
+                example:
+                    success: true
+                    totalPricebooks: 2
+                    totalEntries: 6
+                    pricebooks:
+                      - pricebookId: 01sXXXXXXKPNR123
+                        pricebookName: KPN Retail Pricebook
+                        isActive: true
+                        currencyIsoCode: EUR
+                        lastModifiedDate: '2025-10-30T10:15:00Z'
+                        pricebookEntries:
+                          - pricebookEntryId: 01uXXXXXXMBL100
+                            productId: 01tXXXXXXPDT100
+                            productName: KPN Mobile Postpaid 50GB
+                            productCode: KPN-MBL-50GB
+                            productFamily: Mobile
+                            bundleType: Postpaid Bundle
+                            technology: 5G
+                            speed: Unlimited
+                            unitPrice: 35.99
+                            isActive: true
+                            startDate: '2025-01-01'
+                            endDate: '2025-12-31'
+                            description: Unlimited 5G data plan with EU roaming included
+                          - pricebookEntryId: 01uXXXXXXINT200
+                            productId: 01tXXXXXXPDT200
+                            productName: KPN Fiber Internet 200 Mbps
+                            productCode: KPN-FIBER-200
+                            productFamily: Internet
+                            bundleType: Home Bundle
+                            technology: Fiber
+                            speed: 200 Mbps
+                            unitPrice: 49.99
+                            isActive: true
+                            startDate: '2025-01-01'
+                            endDate: '2025-12-31'
+                            description: High-speed fiber internet with free installation
+                          - pricebookEntryId: 01uXXXXXXTV300
+                            productId: 01tXXXXXXPDT300
+                            productName: KPN Interactive TV Plus
+                            productCode: KPN-TV-PLUS
+                            productFamily: TV
+                            bundleType: Entertainment
+                            technology: IPTV
+                            speed: N/A
+                            unitPrice: 15.99
+                            isActive: true
+                            startDate: '2025-01-01'
+                            endDate: '2025-12-31'
+                            description: Interactive TV package with 100+ HD channels
+                      - pricebookId: 01sXXXXXXKPNB456
+                        pricebookName: KPN B2B Pricebook
+                        isActive: true
+                        currencyIsoCode: EUR
+                        lastModifiedDate: '2025-10-29T09:00:00Z'
+                        pricebookEntries:
+                          - pricebookEntryId: 01uXXXXXXCOR500
+                            productId: 01tXXXXXXCOR500
+                            productName: KPN Business Internet Fiber 500 Mbps
+                            productCode: KPN-BIZ-FIBER-500
+                            productFamily: Internet
+                            bundleType: Business Bundle
+                            technology: Fiber
+                            speed: 500 Mbps
+                            unitPrice: 79.99
+                            isActive: true
+                            startDate: '2025-01-01'
+                            endDate: '2025-12-31'
+                            description: Reliable high-speed fiber connectivity for SMEs
+                          - pricebookEntryId: 01uXXXXXXBIZVOIP
+                            productId: 01tXXXXXXVOIP001
+                            productName: KPN Business VOIP Plan
+                            productCode: KPN-VOIP-PLAN
+                            productFamily: Voice
+                            bundleType: B2B Communication
+                            technology: VoIP
+                            speed: N/A
+                            unitPrice: 25.5
+                            isActive: true
+                            startDate: '2025-01-01'
+                            endDate: '2025-12-31'
+                            description: Unlimited national calling with VoIP phone system
+                          - pricebookEntryId: 01uXXXXXXBIZMOB
+                            productId: 01tXXXXXXMOB900
+                            productName: KPN Business Mobile 100GB
+                            productCode: KPN-BIZ-MBL-100
+                            productFamily: Mobile
+                            bundleType: Business Bundle
+                            technology: 5G
+                            speed: Unlimited
+                            unitPrice: 42.99
+                            isActive: true
+                            startDate: '2025-01-01'
+                            endDate: '2025-12-31'
+                            description: 100GB business mobile plan with 5G and EU roaming  
+        '400':
+          description: Invalid request parameters
+        '404':
+          description: No matching Pricebooks or PricebookEntries found
+        '500':
+          description: Internal server error
