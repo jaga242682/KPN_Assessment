@@ -2,44 +2,107 @@ public with sharing class GetProductController {
 
     @AuraEnabled(cacheable=true)
     public static List<ProductWrapper> getAvailableProducts(Id orderId) {
-        // Query pricebook id from the order
-        Order orderObj = QueryUtility.getOrders(orderId)[0];
-        Id pricebookId = orderObj.Pricebook2Id;
-        String orderStatus = orderObj.Status;
-
-        List<PriceBookEntry> products = QueryUtility.getPriceBookEntries(pricebookId);
-
-        List<ProductWrapper> wrapperList = new List<ProductWrapper>();
-        for(PriceBookEntry p : products) {
-            wrapperList.add(new ProductWrapper(p.Id, p.Product2Id, p.Product2.Name, p.UnitPrice, orderStatus));
+        // Validate input
+        if (orderId == null) {
+            throw new AuraHandledException('Order Id is required.');
         }
-        return wrapperList;
+
+        try {
+            // Query order and guard against missing data
+            List<Order> orders = QueryUtility.getOrders(orderId);
+            if (orders == null || orders.isEmpty()) {
+                return new List<ProductWrapper>();
+            }
+
+            Order orderObj = orders[0];
+            Id pricebookId = orderObj.Pricebook2Id;
+            String orderStatus = orderObj.Status;
+
+            if (pricebookId == null) {
+                // No pricebook associated with order; nothing to return
+                //return new List<ProductWrapper>();
+                throw new AuraHandledException('Add price book into the order to select products.');
+            }
+
+            List<PriceBookEntry> products = QueryUtility.getPriceBookEntries(pricebookId);
+            List<ProductWrapper> wrapperList = new List<ProductWrapper>();
+
+            if (products == null || products.isEmpty()) {
+                return wrapperList;
+            }
+
+            for (PriceBookEntry p : products) {
+                String pName = (p.Product2 != null) ? p.Product2.Name : null;
+                wrapperList.add(new ProductWrapper(String.valueOf(p.Id), String.valueOf(p.Product2Id), pName, p.UnitPrice, orderStatus));
+            }
+
+            return wrapperList;
+        } catch (QueryException qex) {
+            System.debug('QueryException in getAvailableProducts: ' + qex);
+            throw new AuraHandledException('Unable to retrieve products for the order.');
+        } catch (AuraHandledException aex) {
+            // Preserve intentional user-facing exceptions
+            System.debug('AuraHandledException in getAvailableProducts: ' + aex);
+            throw aex;
+        } catch (Exception ex) {
+            System.debug('Exception in getAvailableProducts: ' + ex);
+            throw new AuraHandledException('An unexpected error occurred while retrieving products.');
+        }
     }
 
     @AuraEnabled
     public static void createOrderProduct(Id orderId, Id productId, Id priceBookEntryId, Decimal unitPrice) {
-        // Query order products from the product id
-        List<OrderItem> existingProducts = QueryUtility.getOrderProductsById(productId);
-
-        List<OrderItem> newProducts = new List<OrderItem>();
-        if (existingProducts.size() == 0) {
-            OrderItem newItem = new OrderItem();
-            newItem.PricebookEntryId = priceBookEntryId;
-            newItem.orderId = orderId;
-            newItem.Quantity = 1;
-            newItem.UnitPrice = unitPrice;
-
-            newProducts.add(newItem);
+        // Validate inputs
+        if (orderId == null) {
+            throw new AuraHandledException('Order Id is required.');
         }
-        else {
-            OrderItem newItem = new OrderItem();
-            newItem.Id = existingProducts[0].Id;
-            newItem.Quantity = existingProducts[0].Quantity + 1;
-
-            newProducts.add(newItem);
+        if (productId == null) {
+            throw new AuraHandledException('Product Id is required.');
+        }
+        if (priceBookEntryId == null) {
+            throw new AuraHandledException('Pricebook Entry Id is required.');
         }
 
-        upsert newProducts;
+        try {
+            // Query existing order items for this product
+            List<OrderItem> existingProducts = QueryUtility.getOrderProductsById(productId);
+
+            List<OrderItem> newProducts = new List<OrderItem>();
+            if (existingProducts == null || existingProducts.isEmpty()) {
+                OrderItem newItem = new OrderItem();
+                newItem.PricebookEntryId = priceBookEntryId;
+                newItem.OrderId = orderId;
+                newItem.Quantity = 1;
+                newItem.UnitPrice = unitPrice;
+
+                newProducts.add(newItem);
+            } else {
+                // Update the quantity on the existing item
+                OrderItem newItem = new OrderItem();
+                newItem.Id = existingProducts[0].Id;
+                newItem.Quantity = existingProducts[0].Quantity + 1;
+
+                newProducts.add(newItem);
+            }
+
+            if (!newProducts.isEmpty()) {
+                try {
+                    upsert newProducts;
+                } catch (DmlException dmlex) {
+                    System.debug('DmlException in createOrderProduct upsert: ' + dmlex);
+                    throw new AuraHandledException('Failed to create or update order product: ' + dmlex.getMessage());
+                }
+            }
+        } catch (QueryException qex) {
+            System.debug('QueryException in createOrderProduct: ' + qex);
+            throw new AuraHandledException('Error while checking existing order products.');
+        } catch (AuraHandledException aex) {
+            System.debug('AuraHandledException in createOrderProduct: ' + aex);
+            throw aex;
+        } catch (Exception ex) {
+            System.debug('Exception in createOrderProduct: ' + ex);
+            throw new AuraHandledException('An unexpected error occurred while creating the order product.');
+        }
     }
 
     // Wrapper class to structure data for LWC
