@@ -1,27 +1,33 @@
+/**
+ * Utility class for creating test data for Apex unit tests.
+ * All methods insert records and return them for use in tests.
+ */
 @isTest
 public with sharing class TestDataFactory {
 
-    // ✅ Create Account
+    /**
+     * Create and insert an Account record.
+     */
     public static Account createAccount(String name) {
-        Account acc = new Account(
-            Name = name != null ? name : 'Test Account'
-        );
+        Account acc = new Account(Name = String.isBlank(name) ? 'Test Account' : name);
         insert acc;
         return acc;
     }
 
-    // ✅ Create Contact
+    /**
+     * Create and insert a Contact record linked to an Account.
+     */
     public static Contact createContact(Id accountId, String firstName, String lastName) {
         Contact con = new Contact(
-            FirstName = firstName != null ? firstName : 'Test',
-            LastName  = lastName != null ? lastName : 'Contact',
+            FirstName = String.isBlank(firstName) ? 'Test' : firstName,
+            LastName  = String.isBlank(lastName) ? 'Contact' : lastName,
             AccountId = accountId
         );
         insert con;
         return con;
     }
 
-    
+    /*
     // ✅ Create Product
     public static Product2 createProduct(String name) {
         Product2 prod = new Product2(
@@ -35,9 +41,10 @@ public with sharing class TestDataFactory {
     // ✅ Create Standard PricebookEntry (required first!)
     public static PricebookEntry createStandardPricebookEntry(Product2 product, Decimal price) {
         //Pricebook2 stdPb = getStandardPricebook();
-        Pricebook2 stdPb = [SELECT Id FROM Pricebook2 WHERE IsStandard = true LIMIT 1];
+        //Pricebook2 stdPb = [SELECT Id FROM Pricebook2 WHERE IsStandard = true LIMIT 1];
+        Id stdPBId = Test.getStandardPricebookId();
         PricebookEntry stdPbe = new PricebookEntry(
-            Pricebook2Id = stdPb.Id,
+            Pricebook2Id = stdPBId,
             Product2Id   = product.Id,
             UnitPrice    = price != null ? price : 100,
             IsActive     = true
@@ -48,7 +55,9 @@ public with sharing class TestDataFactory {
 
     // ✅ Create a Custom Pricebook
     public static Pricebook2 createCustomPricebook(String name) {
-        Pricebook2 stdPb = [SELECT Id, Name, IsActive FROM Pricebook2 WHERE IsStandard = true LIMIT 1];
+        
+        Id stdPBId = Test.getStandardPricebookId();
+        Pricebook2 stdPb = [SELECT Id, Name, IsActive FROM Pricebook2 WHERE id =: stdPBId LIMIT 1];
         if (!stdPb.IsActive) {
             stdPb.IsActive = true;
             update stdPb;
@@ -78,8 +87,56 @@ public with sharing class TestDataFactory {
         insert pbe;
         return pbe;
     }
+    */
+    /**
+     * Create and insert a Product, Standard PricebookEntry, Custom Pricebook, and Custom PricebookEntry.
+     * Returns a map with keys: productId, pricebookId, pricebookEntryId.
+     */
+    public static Map<String,Id> createPricebookEntry() {
+        Map<String,Id> pricebookMap = new Map<String,Id>();
+        Id stdPBId = Test.getStandardPricebookId();
 
-    // ✅ Create Order with Line Item
+        Product2 prod = new Product2(
+            Name = 'KPN Mobile 5G Plan',
+            ProductCode = 'KPN-MBL-5G',
+            Family = 'Mobile',
+            IsActive = true
+        );
+        insert prod;
+        pricebookMap.put('productId', prod.Id);
+
+        PricebookEntry stdEntry = new PricebookEntry(
+            Pricebook2Id = stdPBId,
+            Product2Id = prod.Id,
+            UnitPrice = 39.99,
+            IsActive = true
+        );
+        insert stdEntry;
+        //pricebookMap.put('pricebookId', stdPBId);
+        //pricebookMap.put('pricebookEntryId', stdEntry.Id);
+
+        Pricebook2 kpnRetail = new Pricebook2(
+            Name = 'KPN Retail Pricebook',
+            IsActive = true
+        );
+        insert kpnRetail;
+        pricebookMap.put('pricebookId', kpnRetail.Id);
+
+        PricebookEntry kpnEntry = new PricebookEntry(
+            Pricebook2Id = kpnRetail.Id,
+            Product2Id = prod.Id,
+            UnitPrice = 35.99,
+            IsActive = true
+        );
+        insert kpnEntry;
+        pricebookMap.put('pricebookEntryId', kpnEntry.Id);
+
+        return pricebookMap;
+    }
+
+    /**
+     * Create and insert an Order record.
+     */
     public static Order createOrder(Id accountId, Id pricebookId) {
         Order ord = new Order(
             Name = 'Test Order - ' + System.now().getTime(),
@@ -92,11 +149,14 @@ public with sharing class TestDataFactory {
         return ord;
     }
 
+    /**
+     * Create and insert an OrderItem record.
+     */
     public static OrderItem createOrderItem(Id orderId, Id pricebookEntryId, Decimal qty) {
         OrderItem oi = new OrderItem(
             OrderId = orderId,
             PricebookEntryId = pricebookEntryId,
-            Quantity = qty != null ? qty : 1,
+            Quantity = qty == null ? 1 : qty,
             UnitPrice = 99
         );
         insert oi;

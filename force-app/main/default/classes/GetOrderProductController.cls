@@ -39,6 +39,18 @@ public with sharing class GetOrderProductController {
         }
 
         try {
+            // Ensure order exists and load current status
+            Order ord = [SELECT Id, Status FROM Order WHERE Id = :orderId LIMIT 1];
+
+            if (ord == null) {
+                throw new AuraHandledException('Order not found for Id: ' + String.valueOf(orderId));
+            }
+
+            // If already activated, no-op
+            if (ord.Status == 'Activated') {
+                return;
+            }
+
             ord.Status = 'Activated';
             update ord;
 
@@ -49,6 +61,9 @@ public with sharing class GetOrderProductController {
                 p.Status__c = 'Activated';
             }
             update orderItems;*/
+        } catch (QueryException qex) {
+            System.debug('QueryException in activateOrder: ' + qex);
+            throw new AuraHandledException('Order not found or invalid Id.');
         } catch (DmlException dmlex) {
             System.debug('DmlException in activateOrder: ' + dmlex);
             throw new AuraHandledException('Failed to activate order: ' + dmlex.getMessage());

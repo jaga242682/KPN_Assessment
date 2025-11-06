@@ -11,7 +11,7 @@ public with sharing class QueryUtility {
 
     //get pricebook id from order
     public static List<Order> getOrders(id orderId) {
-        return [SELECT Pricebook2Id,Status FROM Order WHERE Id = :orderId  LIMIT 1];
+        return [SELECT Id, Pricebook2Id, Status FROM Order WHERE Id = :orderId  LIMIT 1];
     }
 
     //get pricebook entries from pricebookid

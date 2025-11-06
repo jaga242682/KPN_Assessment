@@ -93,12 +93,6 @@ public with sharing class GetProductController {
                     throw new AuraHandledException('Failed to create or update order product: ' + dmlex.getMessage());
                 }
             }
-        } catch (QueryException qex) {
-            System.debug('QueryException in createOrderProduct: ' + qex);
-            throw new AuraHandledException('Error while checking existing order products.');
-        } catch (AuraHandledException aex) {
-            System.debug('AuraHandledException in createOrderProduct: ' + aex);
-            throw aex;
         } catch (Exception ex) {
             System.debug('Exception in createOrderProduct: ' + ex);
             throw new AuraHandledException('An unexpected error occurred while creating the order product.');
